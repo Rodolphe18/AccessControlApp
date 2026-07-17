@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Cleartext HTTP is off by default on Android. We open it only for the dev server on the LAN, so the
+  phone can reach the local Ktor server during development. Production traffic goes to the VPS over
+  HTTPS and stays covered by the default (cleartext-denied) policy.
+-->
+<network-security-config>
+    <domain-config cleartextTrafficPermitted="true">
+        <domain includeSubdomains="false">192.168.1.104</domain>
+        <domain includeSubdomains="false">10.0.2.2</domain>
+    </domain-config>
+</network-security-config>
