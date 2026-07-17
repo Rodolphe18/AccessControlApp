@@ -1,0 +1,15 @@
+syntax = "proto3";
+
+option java_package = "dev.rodolphe.oskeysdemo.core.datastore.proto";
+option java_multiple_files = true;
+
+// The resident's persisted session. Written encrypted (AES-GCM via the Android Keystore) by the
+// DataStore serializer, so these fields never touch disk in the clear. `is_logged_in` lets the app
+// route straight to Accueil on launch instead of re-deriving state.
+message UserSession {
+  string jwt = 1;
+  bool is_logged_in = 2;
+  string user_id = 3;
+  string display_name = 4;
+  string email = 5;
+}
