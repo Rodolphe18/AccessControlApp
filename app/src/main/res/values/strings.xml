@@ -1,0 +1,15 @@
+<resources>
+    <string name="app_name">Oskeys</string>
+
+    <!-- Bottom navigation -->
+    <string name="tab_home">Accueil</string>
+    <string name="tab_invitations">Invitations</string>
+    <string name="tab_history">Historique</string>
+    <string name="tab_menu">Menu</string>
+
+    <!-- Placeholder screens (filled in as each feature lands) -->
+    <string name="placeholder_home">Accueil</string>
+    <string name="placeholder_invitations">Invitations</string>
+    <string name="placeholder_history">Historique</string>
+    <string name="placeholder_menu">Menu</string>
+</resources>
