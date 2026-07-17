@@ -30,4 +30,11 @@ rootProject.name = "Oskeys"
 include(":app")
 include(":core:model")
 include(":core:designsystem")
+include(":core:datastore-proto")
+include(":core:datastore")
+include(":core:crypto")
+include(":core:network")
+include(":core:database")
+include(":core:data")
+include(":feature:onboarding")
  
