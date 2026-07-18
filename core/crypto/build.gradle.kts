@@ -3,7 +3,7 @@ plugins {
 }
 
 android {
-    namespace = "dev.rodolphe.oskeysdemo.core.crypto"
+    namespace = "dev.rodolphe.syeksodemo.core.crypto"
     compileSdk {
         version = release(36) {
             minorApiLevel = 1

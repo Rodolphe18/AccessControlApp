@@ -5,7 +5,7 @@ plugins {
 }
 
 android {
-    namespace = "dev.rodolphe.oskeysdemo.core.datastore"
+    namespace = "dev.rodolphe.syeksodemo.core.datastore"
     compileSdk {
         version = release(36) {
             minorApiLevel = 1

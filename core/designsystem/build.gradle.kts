@@ -4,7 +4,7 @@ plugins {
 }
 
 android {
-    namespace = "dev.rodolphe.oskeysdemo.core.designsystem"
+    namespace = "dev.rodolphe.syeksodemo.core.designsystem"
     compileSdk {
         version = release(36) {
             minorApiLevel = 1

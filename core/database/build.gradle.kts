@@ -5,7 +5,7 @@ plugins {
 }
 
 android {
-    namespace = "dev.rodolphe.oskeysdemo.core.database"
+    namespace = "dev.rodolphe.syeksodemo.core.database"
     compileSdk {
         version = release(36) {
             minorApiLevel = 1

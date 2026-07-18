@@ -6,7 +6,7 @@ plugins {
 }
 
 android {
-    namespace = "dev.rodolphe.oskeysdemo.feature.onboarding"
+    namespace = "dev.rodolphe.syeksodemo.feature.onboarding"
     compileSdk {
         version = release(36) {
             minorApiLevel = 1

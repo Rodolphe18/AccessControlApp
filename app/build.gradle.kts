@@ -10,7 +10,7 @@ plugins {
 }
 
 android {
-    namespace = "dev.rodolphe.oskeysdemo"
+    namespace = "dev.rodolphe.syeksodemo"
     compileSdk {
         version = release(36) {
             minorApiLevel = 1
@@ -18,7 +18,7 @@ android {
     }
 
     defaultConfig {
-        applicationId = "dev.rodolphe.oskeysdemo"
+        applicationId = "dev.rodolphe.syeksodemo"
         minSdk = 26
         targetSdk = 36
         versionCode = 1
@@ -50,6 +50,8 @@ dependencies {
     implementation(projects.core.model)
     implementation(projects.core.data)
     implementation(projects.feature.onboarding)
+    implementation(projects.feature.home)
+    implementation(projects.feature.sharing)
 
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.activity.compose)
