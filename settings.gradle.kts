@@ -26,7 +26,7 @@ dependencyResolutionManagement {
 // A renamed module then fails at compile time rather than at task-graph resolution.
 enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
 
-rootProject.name = "Oskeys"
+rootProject.name = "Syekso"
 include(":app")
 include(":core:model")
 include(":core:designsystem")
@@ -36,5 +36,9 @@ include(":core:crypto")
 include(":core:network")
 include(":core:database")
 include(":core:data")
+include(":core:ble")
 include(":feature:onboarding")
+include(":feature:home")
+include(":feature:sharing")
+include(":intercom")
  

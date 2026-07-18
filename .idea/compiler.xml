@@ -1,6 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="CompilerConfiguration">
-    <bytecodeTargetLevel target="11" />
+    <bytecodeTargetLevel target="11">
+      <module name="Oskeys.app" target="21" />
+      <module name="Oskeys.core.crypto" target="21" />
+      <module name="Oskeys.core.data" target="21" />
+      <module name="Oskeys.core.database" target="21" />
+      <module name="Oskeys.core.datastore" target="21" />
+      <module name="Oskeys.core.designsystem" target="21" />
+      <module name="Oskeys.core.network" target="21" />
+      <module name="Oskeys.feature.onboarding" target="21" />
+    </bytecodeTargetLevel>
   </component>
 </project>

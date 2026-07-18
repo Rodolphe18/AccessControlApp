@@ -1,0 +1,5 @@
+<resources>
+    <!-- The XML application/activity theme (distinct from the Compose SyeksoTheme). Kept minimal and
+         NoActionBar so Compose owns the whole surface, edge-to-edge. -->
+    <style name="Theme.Syekso" parent="android:Theme.Material.Light.NoActionBar" />
+</resources>
