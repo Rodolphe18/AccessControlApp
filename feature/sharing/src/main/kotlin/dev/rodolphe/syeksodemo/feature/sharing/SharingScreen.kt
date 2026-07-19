@@ -11,8 +11,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CircularProgressIndicator
@@ -56,7 +56,8 @@ fun SharingScreen(
             Modifier
                 .fillMaxSize()
                 .padding(padding)
-                .padding(16.dp),
+                .padding(16.dp)
+                .verticalScroll(rememberScrollState()),
         ) {
             Text("Générer un code rapide", style = MaterialTheme.typography.titleMedium)
             Text(
@@ -100,9 +101,13 @@ fun SharingScreen(
 
             Spacer(Modifier.height(24.dp))
             Text("Envoyées", style = MaterialTheme.typography.titleMedium)
-            LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.padding(top = 8.dp)) {
-                items(uiState.activePins, key = { it.pin }) { pin -> ActivePinRow(pin) }
+            uiState.activePins.forEach { pin ->
+                Spacer(Modifier.height(8.dp))
+                ActivePinRow(pin)
             }
+
+            Spacer(Modifier.height(32.dp))
+            InvitationSection()
         }
     }
 }

@@ -40,5 +40,6 @@ include(":core:ble")
 include(":feature:onboarding")
 include(":feature:home")
 include(":feature:sharing")
+include(":feature:intercomcall")
 include(":intercom")
  

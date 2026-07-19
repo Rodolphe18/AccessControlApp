@@ -1,5 +1,6 @@
 package dev.rodolphe.syeksodemo.core.network.model
 
+import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 /**
@@ -45,6 +46,48 @@ data class PinCodeNetwork(val pin: String, val doorName: String, val expiresAtEp
 
 @Serializable
 data class PinCodesResponseNetwork(val codes: List<PinCodeNetwork>)
+
+@Serializable
+sealed interface SignalingMessage {
+    @Serializable @SerialName("hello")
+    data class Hello(val role: String, val jwt: String? = null, val intercomKey: String? = null, val buildingId: String? = null) : SignalingMessage
+    @Serializable @SerialName("ring")
+    data class Ring(val callId: String, val targetUserId: String? = null, val doorName: String? = null) : SignalingMessage
+    @Serializable @SerialName("open")
+    data class Open(val callId: String) : SignalingMessage
+    @Serializable @SerialName("decline")
+    data class Decline(val callId: String) : SignalingMessage
+    @Serializable @SerialName("open_result")
+    data class OpenResult(val callId: String, val success: Boolean, val reason: String? = null) : SignalingMessage
+    @Serializable @SerialName("error")
+    data class ErrorMsg(val callId: String? = null, val message: String) : SignalingMessage
+}
+
+@Serializable
+data class DirectoryEntryNetwork(val userId: String, val displayName: String)
+
+@Serializable
+data class DirectoryResponseNetwork(val residents: List<DirectoryEntryNetwork>)
+
+@Serializable
+data class CreateInvitationRequestNetwork(
+    val title: String,
+    val doorId: String,
+    val validFromEpochMs: Long,
+    val validUntilEpochMs: Long,
+)
+
+@Serializable
+data class InvitationNetwork(
+    val code: String,
+    val title: String,
+    val doorName: String,
+    val validFromEpochMs: Long,
+    val validUntilEpochMs: Long,
+)
+
+@Serializable
+data class InvitationsResponseNetwork(val invitations: List<InvitationNetwork>)
 
 @Serializable
 data class IntercomValidateRequestNetwork(val pin: String)

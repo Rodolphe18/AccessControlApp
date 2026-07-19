@@ -8,6 +8,8 @@ import dev.rodolphe.syeksodemo.core.data.repository.AuthRepository
 import dev.rodolphe.syeksodemo.core.data.repository.AuthRepositoryImpl
 import dev.rodolphe.syeksodemo.core.data.repository.DoorsRepository
 import dev.rodolphe.syeksodemo.core.data.repository.DoorsRepositoryImpl
+import dev.rodolphe.syeksodemo.core.data.repository.InvitationRepository
+import dev.rodolphe.syeksodemo.core.data.repository.InvitationRepositoryImpl
 import dev.rodolphe.syeksodemo.core.data.repository.PinCodeRepository
 import dev.rodolphe.syeksodemo.core.data.repository.PinCodeRepositoryImpl
 import javax.inject.Singleton
@@ -27,4 +29,8 @@ abstract class DataModule {
     @Binds
     @Singleton
     abstract fun bindPinCodeRepository(impl: PinCodeRepositoryImpl): PinCodeRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindInvitationRepository(impl: InvitationRepositoryImpl): InvitationRepository
 }

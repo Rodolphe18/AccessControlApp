@@ -11,6 +11,7 @@ import android.bluetooth.BluetoothManager
 import android.bluetooth.BluetoothProfile
 import android.bluetooth.le.ScanCallback
 import android.bluetooth.le.ScanResult
+import android.bluetooth.le.ScanSettings
 import android.content.Context
 import android.content.pm.PackageManager
 import android.os.Build
@@ -121,7 +122,13 @@ class AndroidSyeksoBleController @Inject constructor(
                 }
             }
 
-            scanner?.startScan(scanCallback)
+            // LOW_LATENCY = continuous scanning (~100% duty cycle). The default single-arg startScan uses
+            // LOW_POWER (~10% duty cycle), which only intermittently catches a peripheral's advertisement
+            // within our 10s window. For a short, foreground door-open we want to find it reliably & fast.
+            val scanSettings = ScanSettings.Builder()
+                .setScanMode(ScanSettings.SCAN_MODE_LOW_LATENCY)
+                .build()
+            scanner?.startScan(emptyList(), scanSettings, scanCallback)
 
             // Scan timeout: no matching advertiser within the window -> NotFound.
             launch {

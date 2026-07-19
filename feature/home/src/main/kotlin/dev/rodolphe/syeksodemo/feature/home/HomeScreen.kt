@@ -1,6 +1,7 @@
 package dev.rodolphe.syeksodemo.feature.home
 
 import android.Manifest
+import android.content.pm.PackageManager
 import android.os.Build
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -34,10 +35,15 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.core.content.ContextCompat
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dev.rodolphe.syeksodemo.core.ble.DoorOpenError
@@ -47,21 +53,35 @@ import dev.rodolphe.syeksodemo.core.model.Door
 @Composable
 fun HomeRoute(viewModel: HomeViewModel = hiltViewModel()) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val context = LocalContext.current
 
     val permissions = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
         arrayOf(Manifest.permission.BLUETOOTH_SCAN, Manifest.permission.BLUETOOTH_CONNECT)
     } else {
         arrayOf(Manifest.permission.ACCESS_FINE_LOCATION)
     }
+    // The door awaiting a permission result, so we open it only once the user has granted access.
+    var pendingDoor by remember { mutableStateOf<Door?>(null) }
     val permissionLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.RequestMultiplePermissions(),
-    ) { /* result handled by the controller's own re-check on the next open() */ }
+    ) { results ->
+        val door = pendingDoor
+        pendingDoor = null
+        if (door != null && results.values.all { it }) viewModel.open(door)
+    }
 
     HomeScreen(
         uiState = uiState,
         onOpenDoor = { door ->
-            permissionLauncher.launch(permissions)
-            viewModel.open(door)
+            val granted = permissions.all {
+                ContextCompat.checkSelfPermission(context, it) == PackageManager.PERMISSION_GRANTED
+            }
+            if (granted) {
+                viewModel.open(door)
+            } else {
+                pendingDoor = door
+                permissionLauncher.launch(permissions)
+            }
         },
         onActivateClicked = viewModel::onActivateClicked,
         onActivationCodeChange = viewModel::onActivationCodeChange,

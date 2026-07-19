@@ -29,6 +29,21 @@ class CommandCallbacks : public NimBLECharacteristicCallbacks {
   }
 };
 
+// A BLE peripheral stops advertising the moment a central connects. Without restarting advertising on
+// disconnect, the device is discoverable only until the FIRST open, then goes dark until reboot — which
+// is exactly the "opens once, then 'porte introuvable' forever" symptom. Restart advertising on every
+// disconnect so each open finds the door again.
+class ServerCallbacks : public NimBLEServerCallbacks {
+  // NimBLE-Arduino 2.x signatures (add NimBLEConnInfo&; onDisconnect adds an int reason).
+  void onConnect(NimBLEServer* server, NimBLEConnInfo& connInfo) override {
+    Serial.println("central connected");
+  }
+  void onDisconnect(NimBLEServer* server, NimBLEConnInfo& connInfo, int reason) override {
+    Serial.printf("central disconnected (reason=%d) -> restarting advertising\n", reason);
+    NimBLEDevice::getAdvertising()->start();
+  }
+};
+
 void setup() {
   Serial.begin(115200);
   pinMode(RELAY_PIN, OUTPUT);
@@ -36,6 +51,7 @@ void setup() {
 
   NimBLEDevice::init(DEVICE_NAME);
   NimBLEServer* server = NimBLEDevice::createServer();
+  server->setCallbacks(new ServerCallbacks());
   NimBLEService* service = server->createService(SERVICE_UUID);
   NimBLECharacteristic* command = service->createCharacteristic(
       COMMAND_UUID, NIMBLE_PROPERTY::WRITE);

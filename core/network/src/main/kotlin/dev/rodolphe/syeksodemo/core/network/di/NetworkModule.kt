@@ -3,6 +3,10 @@ package dev.rodolphe.syeksodemo.core.network.di
 import dev.rodolphe.syeksodemo.core.network.BuildConfig
 import dev.rodolphe.syeksodemo.core.network.IntercomApiService
 import dev.rodolphe.syeksodemo.core.network.SyeksoApiService
+import dev.rodolphe.syeksodemo.core.network.signaling.OkHttpSignalingTransport
+import dev.rodolphe.syeksodemo.core.network.signaling.Signaling
+import dev.rodolphe.syeksodemo.core.network.signaling.SignalingClient
+import dev.rodolphe.syeksodemo.core.network.signaling.SignalingTransport
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -56,4 +60,14 @@ object NetworkModule {
     @Singleton
     fun provideIntercomApiService(retrofit: Retrofit): IntercomApiService =
         retrofit.create(IntercomApiService::class.java)
+
+    @Provides
+    @Singleton
+    fun provideSignalingTransport(client: OkHttpClient): SignalingTransport =
+        OkHttpSignalingTransport(client)
+
+    @Provides
+    @Singleton
+    fun provideSignaling(transport: SignalingTransport): Signaling =
+        SignalingClient(transport)
 }

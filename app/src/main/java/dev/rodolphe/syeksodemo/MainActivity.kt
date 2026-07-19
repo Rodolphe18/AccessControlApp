@@ -16,6 +16,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dagger.hilt.android.AndroidEntryPoint
 import dev.rodolphe.syeksodemo.core.designsystem.theme.SyeksoTheme
+import dev.rodolphe.syeksodemo.feature.intercomcall.IncomingCallOverlay
 import dev.rodolphe.syeksodemo.feature.onboarding.login.LoginRoute
 import dev.rodolphe.syeksodemo.navigation.SyeksoNavHost
 
@@ -40,7 +41,10 @@ private fun SyeksoApp(viewModel: MainViewModel = hiltViewModel()) {
     when (uiState) {
         MainUiState.Loading -> LoadingScreen()
         MainUiState.LoggedOut -> LoginRoute()
-        MainUiState.LoggedIn -> SyeksoNavHost()
+        MainUiState.LoggedIn -> Box(Modifier.fillMaxSize()) {
+            SyeksoNavHost()
+            IncomingCallOverlay()
+        }
     }
 }
 

@@ -1,6 +1,7 @@
 package dev.rodolphe.syeksodemo.intercom
 
 import android.Manifest
+import android.content.pm.PackageManager
 import android.os.Build
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -22,14 +23,17 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.core.content.ContextCompat
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 
 @Composable
 fun IntercomRoute(viewModel: IntercomViewModel = hiltViewModel()) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val context = LocalContext.current
 
     val permissions = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
         arrayOf(Manifest.permission.BLUETOOTH_SCAN, Manifest.permission.BLUETOOTH_CONNECT)
@@ -38,7 +42,10 @@ fun IntercomRoute(viewModel: IntercomViewModel = hiltViewModel()) {
     }
     val permissionLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.RequestMultiplePermissions(),
-    ) { }
+    ) { results ->
+        // Validate only once the user has actually granted the permissions.
+        if (results.values.all { it }) viewModel.validate()
+    }
 
     IntercomScreen(
         entered = uiState.entered,
@@ -46,8 +53,10 @@ fun IntercomRoute(viewModel: IntercomViewModel = hiltViewModel()) {
         onDigit = viewModel::onDigit,
         onClear = viewModel::onClear,
         onValidate = {
-            permissionLauncher.launch(permissions)
-            viewModel.validate()
+            val granted = permissions.all {
+                ContextCompat.checkSelfPermission(context, it) == PackageManager.PERMISSION_GRANTED
+            }
+            if (granted) viewModel.validate() else permissionLauncher.launch(permissions)
         },
     )
 }

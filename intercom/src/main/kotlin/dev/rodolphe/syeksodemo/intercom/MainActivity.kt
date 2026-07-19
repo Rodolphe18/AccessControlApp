@@ -18,7 +18,7 @@ class MainActivity : ComponentActivity() {
         setContent {
             SyeksoTheme {
                 Surface(modifier = Modifier.fillMaxSize()) {
-                    IntercomRoute()
+                    IntercomHomeScreen()
                 }
             }
         }
