@@ -13,6 +13,6 @@ data class CallUiState(
 sealed interface CallStatus {
     data object Idle : CallStatus
     data object Ringing : CallStatus
-    data object Opening : CallStatus
+    data object InCall : CallStatus
     data class Ended(val message: String) : CallStatus
 }

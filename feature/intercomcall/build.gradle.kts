@@ -30,6 +30,7 @@ android {
 dependencies {
     implementation(projects.core.designsystem)
     implementation(projects.core.network)
+    implementation(projects.core.webrtc)
 
     implementation(libs.kotlinx.coroutines.android)
 

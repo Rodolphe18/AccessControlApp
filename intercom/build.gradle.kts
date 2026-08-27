@@ -46,6 +46,7 @@ dependencies {
     implementation(projects.core.designsystem)
     implementation(projects.core.ble)
     implementation(projects.core.network)
+    implementation(projects.core.webrtc)
 
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.activity.compose)

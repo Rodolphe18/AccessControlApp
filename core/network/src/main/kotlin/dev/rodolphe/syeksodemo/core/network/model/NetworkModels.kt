@@ -61,6 +61,16 @@ sealed interface SignalingMessage {
     data class OpenResult(val callId: String, val success: Boolean, val reason: String? = null) : SignalingMessage
     @Serializable @SerialName("error")
     data class ErrorMsg(val callId: String? = null, val message: String) : SignalingMessage
+    @Serializable @SerialName("accept")
+    data class Accept(val callId: String) : SignalingMessage
+    @Serializable @SerialName("offer")
+    data class Offer(val callId: String, val sdp: String) : SignalingMessage
+    @Serializable @SerialName("answer")
+    data class Answer(val callId: String, val sdp: String) : SignalingMessage
+    @Serializable @SerialName("ice")
+    data class IceCandidate(val callId: String, val sdp: String, val sdpMid: String? = null, val sdpMLineIndex: Int = 0) : SignalingMessage
+    @Serializable @SerialName("hangup")
+    data class Hangup(val callId: String) : SignalingMessage
 }
 
 @Serializable

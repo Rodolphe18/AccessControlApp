@@ -14,7 +14,9 @@ import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
+import dev.rodolphe.syeksodemo.core.webrtc.WebRtcEvent
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
 
@@ -35,10 +37,15 @@ class CallViewModelTest {
     private val fakeDirectory = object : DirectoryProvider {
         override suspend fun residents() = listOf(DirectoryEntryNetwork("user-rodolphe", "Rodolphe"))
     }
-    private fun vm(sig: FakeSignaling, ble: FakeSyeksoBleController) = CallViewModel(
+    private fun vm(
+        sig: FakeSignaling,
+        ble: FakeSyeksoBleController,
+        rtc: FakeWebRtcSession = FakeWebRtcSession(),
+    ) = CallViewModel(
         signaling = sig, bleController = ble,
         directoryProvider = fakeDirectory,
         config = IntercomConfig(buildingId = "bld-montmartre", doorName = "Porte d'entrée", doorBleLocalName = door),
+        sessionProvider = { rtc },
     )
 
     @Test fun `loads directory and preselects the single resident`() = runTest {
@@ -81,5 +88,40 @@ class CallViewModelTest {
         sig.flow.emit(SignalingMessage.Open(callId)); runCurrent()
         val result = sig.sent.last() as SignalingMessage.OpenResult
         assertEquals(false, result.success)
+    }
+
+    @Test fun `incoming Accept starts the caller session`() = runTest {
+        val sig = FakeSignaling(); val rtc = FakeWebRtcSession()
+        val viewModel = vm(sig, FakeSyeksoBleController(), rtc)
+        backgroundScope.launch { viewModel.uiState.collect() }; runCurrent()
+        viewModel.ring(); runCurrent()
+        val callId = (sig.sent.single() as SignalingMessage.Ring).callId
+        sig.flow.emit(SignalingMessage.Accept(callId)); runCurrent()
+        assertTrue(rtc.calls.contains("startAsCaller"))
+        assertEquals(CallStatus.InCall, viewModel.uiState.value.status)
+    }
+
+    @Test fun `local sdp is sent as Offer, incoming Answer is applied`() = runTest {
+        val sig = FakeSignaling(); val rtc = FakeWebRtcSession()
+        val viewModel = vm(sig, FakeSyeksoBleController(), rtc)
+        backgroundScope.launch { viewModel.uiState.collect() }; runCurrent()
+        viewModel.ring(); runCurrent()
+        val callId = (sig.sent.single() as SignalingMessage.Ring).callId
+        sig.flow.emit(SignalingMessage.Accept(callId)); runCurrent()
+        rtc.flow.emit(WebRtcEvent.LocalSdp("OFFER", "offer")); runCurrent()
+        assertTrue(sig.sent.any { it == SignalingMessage.Offer(callId, "OFFER") })
+        sig.flow.emit(SignalingMessage.Answer(callId, "ANSWER")); runCurrent()
+        assertTrue(rtc.calls.contains("onRemoteSdp:answer"))
+    }
+
+    @Test fun `hangup closes the caller session`() = runTest {
+        val sig = FakeSignaling(); val rtc = FakeWebRtcSession()
+        val viewModel = vm(sig, FakeSyeksoBleController(), rtc)
+        backgroundScope.launch { viewModel.uiState.collect() }; runCurrent()
+        viewModel.ring(); runCurrent()
+        val callId = (sig.sent.single() as SignalingMessage.Ring).callId
+        sig.flow.emit(SignalingMessage.Accept(callId)); runCurrent()
+        sig.flow.emit(SignalingMessage.Hangup(callId)); runCurrent()
+        assertTrue(rtc.calls.contains("close"))
     }
 }

@@ -7,6 +7,9 @@ import dev.rodolphe.syeksodemo.core.ble.DoorOpenState
 import dev.rodolphe.syeksodemo.core.ble.SyeksoBleController
 import dev.rodolphe.syeksodemo.core.network.model.SignalingMessage
 import dev.rodolphe.syeksodemo.core.network.signaling.Signaling
+import dev.rodolphe.syeksodemo.core.webrtc.WebRtcEvent
+import dev.rodolphe.syeksodemo.core.webrtc.WebRtcSession
+import dev.rodolphe.syeksodemo.core.webrtc.WebRtcSessionFactory
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -16,17 +19,27 @@ import java.util.UUID
 import javax.inject.Inject
 
 @HiltViewModel
-class CallViewModel @Inject constructor(
+class CallViewModel(
     private val signaling: Signaling,
     private val bleController: SyeksoBleController,
     private val directoryProvider: DirectoryProvider,
     private val config: IntercomConfig,
+    private val sessionProvider: () -> WebRtcSession,
 ) : ViewModel() {
+
+    @Inject constructor(
+        signaling: Signaling,
+        bleController: SyeksoBleController,
+        directoryProvider: DirectoryProvider,
+        config: IntercomConfig,
+        factory: WebRtcSessionFactory,
+    ) : this(signaling, bleController, directoryProvider, config, { factory.create() })
 
     private val _uiState = MutableStateFlow(CallUiState())
     val uiState: StateFlow<CallUiState> = _uiState.asStateFlow()
 
     private var currentCallId: String? = null
+    private var session: WebRtcSession? = null
 
     init {
         viewModelScope.launch {
@@ -36,9 +49,13 @@ class CallViewModel @Inject constructor(
         viewModelScope.launch {
             signaling.incoming.collect { msg ->
                 when (msg) {
+                    is SignalingMessage.Accept -> if (msg.callId == currentCallId) startCaller(msg.callId)
+                    is SignalingMessage.Answer -> if (msg.callId == currentCallId) session?.onRemoteSdp(msg.sdp, "answer")
+                    is SignalingMessage.IceCandidate -> if (msg.callId == currentCallId) session?.addRemoteIce(msg.sdp, msg.sdpMid, msg.sdpMLineIndex)
                     is SignalingMessage.Open -> if (msg.callId == currentCallId) doOpen(msg.callId)
-                    is SignalingMessage.Decline -> if (msg.callId == currentCallId) end("Refusé")
-                    is SignalingMessage.ErrorMsg -> if (msg.callId == currentCallId) end(msg.message)
+                    is SignalingMessage.Hangup -> if (msg.callId == currentCallId) endCall("Terminé")
+                    is SignalingMessage.ErrorMsg -> if (msg.callId == currentCallId) endCall(msg.message)
+                    is SignalingMessage.Decline -> if (msg.callId == currentCallId) endCall("Refusé")
                     else -> {}
                 }
             }
@@ -56,8 +73,28 @@ class CallViewModel @Inject constructor(
         _uiState.update { it.copy(status = CallStatus.Ringing) }
     }
 
+    fun hangup() {
+        currentCallId?.let { signaling.send(SignalingMessage.Hangup(it)) }
+        endCall("Terminé")
+    }
+
+    private fun startCaller(callId: String) {
+        val s = sessionProvider().also { session = it }
+        viewModelScope.launch {
+            s.events.collect { e ->
+                when (e) {
+                    is WebRtcEvent.LocalSdp -> signaling.send(SignalingMessage.Offer(callId, e.sdp))
+                    is WebRtcEvent.LocalIce -> signaling.send(SignalingMessage.IceCandidate(callId, e.sdp, e.sdpMid, e.sdpMLineIndex))
+                    else -> {}
+                }
+            }
+        }
+        s.startAsCaller()
+        _uiState.update { it.copy(status = CallStatus.InCall) }
+    }
+
+    /** Open the door during a call. Does NOT end the call — talk continues. */
     private fun doOpen(callId: String) {
-        _uiState.update { it.copy(status = CallStatus.Opening) }
         viewModelScope.launch {
             var success = false
             var reason: String? = null
@@ -69,12 +106,15 @@ class CallViewModel @Inject constructor(
                 }
             }
             signaling.send(SignalingMessage.OpenResult(callId, success, reason))
-            end(if (success) "Ouvert" else "Ouverture impossible")
         }
     }
 
-    private fun end(message: String) {
+    private fun endCall(message: String) {
+        session?.close()
+        session = null
         currentCallId = null
         _uiState.update { it.copy(status = CallStatus.Ended(message)) }
     }
+
+    override fun onCleared() { session?.close() }
 }
