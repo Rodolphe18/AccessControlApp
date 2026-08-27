@@ -11,7 +11,7 @@ import dev.rodolphe.syeksodemo.R
 import kotlinx.serialization.Serializable
 
 /**
- * The four bottom-bar tabs of the resident app, mirroring the real Oskey app.
+ * The four bottom-bar tabs of the resident app.
  *
  * Routes are serializable objects so navigation is type-safe: a typo becomes a compile error, not a
  * crash at runtime. Each entry carries its own icon and label so the bottom bar is a pure function
