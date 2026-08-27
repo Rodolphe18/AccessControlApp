@@ -1,12 +1,14 @@
 package dev.rodolphe.syeksodemo.core.network
 
+import dev.rodolphe.syeksodemo.core.network.model.IntercomOpenResultRequestNetwork
+import dev.rodolphe.syeksodemo.core.network.model.IntercomOpenResultResponseNetwork
 import dev.rodolphe.syeksodemo.core.network.model.IntercomValidateRequestNetwork
 import dev.rodolphe.syeksodemo.core.network.model.IntercomValidateResponseNetwork
 import retrofit2.http.Body
 import retrofit2.http.Header
 import retrofit2.http.POST
 
-/** The intercom device's single call: check a PIN and (on success) get the door to open. */
+/** The intercom device's calls: check a PIN, then report whether the door actually opened. */
 interface IntercomApiService {
 
     @POST("intercom/validate")
@@ -14,4 +16,10 @@ interface IntercomApiService {
         @Header("X-Intercom-Key") key: String,
         @Body body: IntercomValidateRequestNetwork,
     ): IntercomValidateResponseNetwork
+
+    @POST("intercom/open-result")
+    suspend fun reportOpenResult(
+        @Header("X-Intercom-Key") key: String,
+        @Body body: IntercomOpenResultRequestNetwork,
+    ): IntercomOpenResultResponseNetwork
 }

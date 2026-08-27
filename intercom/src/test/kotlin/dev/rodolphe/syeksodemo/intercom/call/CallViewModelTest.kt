@@ -114,6 +114,81 @@ class CallViewModelTest {
         assertTrue(rtc.calls.contains("onRemoteSdp:answer"))
     }
 
+    @Test fun `an unavailable resident ends the call but leaves ringing available`() = runTest {
+        val sig = FakeSignaling(); val viewModel = vm(sig, FakeSyeksoBleController())
+        backgroundScope.launch { viewModel.uiState.collect() }; runCurrent()
+        viewModel.ring(); runCurrent()
+        val callId = (sig.sent.single() as SignalingMessage.Ring).callId
+
+        // What the hub sends when the resident isn't connected.
+        sig.flow.emit(SignalingMessage.ErrorMsg(callId, "Résident indisponible")); runCurrent()
+
+        assertEquals(CallStatus.Ended("Résident indisponible", isFailure = true), viewModel.uiState.value.status)
+        // The regression this guards: Ended used to be terminal, leaving Sonner disabled forever.
+        assertEquals(true, viewModel.uiState.value.canRing)
+    }
+
+    @Test fun `a call the resident hangs up ends without being a failure`() = runTest {
+        val sig = FakeSignaling(); val rtc = FakeWebRtcSession()
+        val viewModel = vm(sig, FakeSyeksoBleController(), rtc)
+        backgroundScope.launch { viewModel.uiState.collect() }; runCurrent()
+        viewModel.ring(); runCurrent()
+        val callId = (sig.sent.single() as SignalingMessage.Ring).callId
+        sig.flow.emit(SignalingMessage.Accept(callId)); runCurrent()
+
+        sig.flow.emit(SignalingMessage.Hangup(callId)); runCurrent()
+
+        // No "Réessayer" invitation after a conversation that actually happened.
+        assertEquals(CallStatus.Ended("Terminé", isFailure = false), viewModel.uiState.value.status)
+    }
+
+    @Test fun `a declined call is a failure`() = runTest {
+        val sig = FakeSignaling(); val viewModel = vm(sig, FakeSyeksoBleController())
+        backgroundScope.launch { viewModel.uiState.collect() }; runCurrent()
+        viewModel.ring(); runCurrent()
+        val callId = (sig.sent.single() as SignalingMessage.Ring).callId
+
+        sig.flow.emit(SignalingMessage.Decline(callId)); runCurrent()
+
+        assertEquals(CallStatus.Ended("Refusé", isFailure = true), viewModel.uiState.value.status)
+    }
+
+    @Test fun `a call in flight still blocks a second ring`() = runTest {
+        val sig = FakeSignaling(); val viewModel = vm(sig, FakeSyeksoBleController())
+        backgroundScope.launch { viewModel.uiState.collect() }; runCurrent()
+        viewModel.ring(); runCurrent()
+
+        assertEquals(CallStatus.Ringing, viewModel.uiState.value.status)
+        assertEquals(false, viewModel.uiState.value.canRing)
+        viewModel.ring(); runCurrent()
+        assertEquals(1, sig.sent.filterIsInstance<SignalingMessage.Ring>().size)
+    }
+
+    @Test fun `reset clears a finished call's outcome`() = runTest {
+        val sig = FakeSignaling(); val viewModel = vm(sig, FakeSyeksoBleController())
+        backgroundScope.launch { viewModel.uiState.collect() }; runCurrent()
+        viewModel.ring(); runCurrent()
+        val callId = (sig.sent.single() as SignalingMessage.Ring).callId
+        sig.flow.emit(SignalingMessage.ErrorMsg(callId, "Résident indisponible")); runCurrent()
+
+        viewModel.reset(); runCurrent()
+
+        assertEquals(CallStatus.Idle, viewModel.uiState.value.status)
+    }
+
+    @Test fun `reset lets the visitor ring a second time`() = runTest {
+        val sig = FakeSignaling(); val viewModel = vm(sig, FakeSyeksoBleController())
+        backgroundScope.launch { viewModel.uiState.collect() }; runCurrent()
+        viewModel.ring(); runCurrent()
+        val callId = (sig.sent.single() as SignalingMessage.Ring).callId
+        sig.flow.emit(SignalingMessage.ErrorMsg(callId, "Résident indisponible")); runCurrent()
+
+        viewModel.reset(); runCurrent()
+        viewModel.ring(); runCurrent()
+
+        assertEquals(2, sig.sent.filterIsInstance<SignalingMessage.Ring>().size)
+    }
+
     @Test fun `hangup closes the caller session`() = runTest {
         val sig = FakeSignaling(); val rtc = FakeWebRtcSession()
         val viewModel = vm(sig, FakeSyeksoBleController(), rtc)

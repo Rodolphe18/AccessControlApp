@@ -53,9 +53,9 @@ class CallViewModel(
                     is SignalingMessage.Answer -> if (msg.callId == currentCallId) session?.onRemoteSdp(msg.sdp, "answer")
                     is SignalingMessage.IceCandidate -> if (msg.callId == currentCallId) session?.addRemoteIce(msg.sdp, msg.sdpMid, msg.sdpMLineIndex)
                     is SignalingMessage.Open -> if (msg.callId == currentCallId) doOpen(msg.callId)
-                    is SignalingMessage.Hangup -> if (msg.callId == currentCallId) endCall("Terminé")
-                    is SignalingMessage.ErrorMsg -> if (msg.callId == currentCallId) endCall(msg.message)
-                    is SignalingMessage.Decline -> if (msg.callId == currentCallId) endCall("Refusé")
+                    is SignalingMessage.Hangup -> if (msg.callId == currentCallId) endCall("Terminé", isFailure = false)
+                    is SignalingMessage.ErrorMsg -> if (msg.callId == currentCallId) endCall(msg.message, isFailure = true)
+                    is SignalingMessage.Decline -> if (msg.callId == currentCallId) endCall("Refusé", isFailure = true)
                     else -> {}
                 }
             }
@@ -73,9 +73,21 @@ class CallViewModel(
         _uiState.update { it.copy(status = CallStatus.Ringing) }
     }
 
+    /**
+     * Clears a finished call's outcome so the visitor can ring again.
+     *
+     * [CallStatus.Ended] is otherwise a terminal state: `canRing` requires [CallStatus.Idle], and
+     * nothing else ever returns there — so without this the Sonner button stays disabled for the
+     * rest of the session once a call is declined, times out, or the resident is offline.
+     */
+    fun reset() {
+        if (_uiState.value.status !is CallStatus.Ended) return
+        _uiState.update { it.copy(status = CallStatus.Idle) }
+    }
+
     fun hangup() {
         currentCallId?.let { signaling.send(SignalingMessage.Hangup(it)) }
-        endCall("Terminé")
+        endCall("Terminé", isFailure = false)
     }
 
     private fun startCaller(callId: String) {
@@ -109,11 +121,11 @@ class CallViewModel(
         }
     }
 
-    private fun endCall(message: String) {
+    private fun endCall(message: String, isFailure: Boolean) {
         session?.close()
         session = null
         currentCallId = null
-        _uiState.update { it.copy(status = CallStatus.Ended(message)) }
+        _uiState.update { it.copy(status = CallStatus.Ended(message, isFailure)) }
     }
 
     override fun onCleared() { session?.close() }

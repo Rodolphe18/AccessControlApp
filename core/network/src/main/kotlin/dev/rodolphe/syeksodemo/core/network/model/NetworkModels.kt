@@ -109,3 +109,14 @@ data class IntercomValidateResponseNetwork(
     val doorBleLocalName: String? = null,
     val reason: String? = null,
 )
+
+/**
+ * Reports back whether the door physically opened. Validation claims a single-use PIN before the
+ * BLE attempt, so a failure has to hand it back — otherwise a radio glitch costs the visitor their
+ * only code.
+ */
+@Serializable
+data class IntercomOpenResultRequestNetwork(val pin: String, val success: Boolean)
+
+@Serializable
+data class IntercomOpenResultResponseNetwork(val released: Boolean)
