@@ -135,7 +135,7 @@ Flow** · **Retrofit + kotlinx.serialization** · **OkHttp WebSocket** · **Room
 · **Android Keystore** · **stream-webrtc-android** · **Android BLE (GATT)** · AGP 9, minSdk 26,
 targetSdk 36.
 
-**Backend:** Ktor 3 · MongoDB Atlas · JWT — [`AccessControllerServer`](https://github.com/Rodolphe18) (separate repo).
+**Backend:** Ktor 3 · MongoDB Atlas · JWT — [`AccessControllerServer`](https://github.com/Rodolphe18/AccessControllerServer) (separate repo).
 **Hardware:** ESP32 + NimBLE-Arduino 2.x — firmware in [`hardware/esp32-door/`](hardware/esp32-door/).
 
 ---
@@ -146,7 +146,8 @@ You need the phone, the backend and (for door opening) an ESP32 on the same Wi-F
 
 ```bash
 # 1. Flash the door — Arduino IDE, ESP32 board package, NimBLE-Arduino library
-#    hardware/esp32-door/esp32-door.ino  → advertises OSKEY-HALL-01
+#    hardware/esp32-door/esp32-door.ino — its DEVICE_NAME must match a door's
+#    bleLocalName in the backend seed data
 
 # 2. Start the backend (separate repo), with MONGODB_URI set. Port 8080.
 
