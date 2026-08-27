@@ -19,7 +19,7 @@ class IntercomViewModelTest {
 
     private fun vm(api: FakeIntercomApiService, ble: FakeSyeksoBleController) = IntercomViewModel(api, ble)
 
-    private fun enterPin(viewModel: IntercomViewModel, pin: String) = pin.forEach { viewModel.onDigit(it.toString()) }
+    private fun enterPin(viewModel: IntercomViewModel, pin: String) = pin.forEach { viewModel.onDigitClicked(it.toString()) }
 
     @Test
     fun `digits accumulate up to six`() {
@@ -38,7 +38,7 @@ class IntercomViewModelTest {
         backgroundScope.launch { viewModel.uiState.collect() }
         enterPin(viewModel, "483920")
 
-        viewModel.validate()
+        viewModel.validateByCodePin()
         runCurrent()
 
         assertEquals("483920", api.lastPin)
@@ -56,7 +56,7 @@ class IntercomViewModelTest {
         backgroundScope.launch { viewModel.uiState.collect() }
         enterPin(viewModel, "111111")
 
-        viewModel.validate()
+        viewModel.validateByCodePin()
         runCurrent()
 
         assertEquals(IntercomStatus.Denied("Code déjà utilisé"), viewModel.uiState.value.status)
@@ -70,7 +70,7 @@ class IntercomViewModelTest {
         backgroundScope.launch { viewModel.uiState.collect() }
         enterPin(viewModel, "222222")
 
-        viewModel.validate()
+        viewModel.validateByCodePin()
         runCurrent()
 
         assertTrue(viewModel.uiState.value.status is IntercomStatus.Error)

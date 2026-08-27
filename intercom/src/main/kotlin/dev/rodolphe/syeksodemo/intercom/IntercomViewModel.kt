@@ -23,14 +23,14 @@ class IntercomViewModel @Inject constructor(
     private val _uiState = MutableStateFlow(IntercomUiState())
     val uiState: StateFlow<IntercomUiState> = _uiState.asStateFlow()
 
-    fun onDigit(digit: String) = _uiState.update {
+    fun onDigitClicked(digit: String) = _uiState.update {
         if (it.entered.length >= IntercomUiState.PIN_LENGTH) it
         else it.copy(entered = it.entered + digit, status = IntercomStatus.Idle)
     }
 
     fun onClear() = _uiState.update { it.copy(entered = "", status = IntercomStatus.Idle) }
 
-    fun validate() {
+    fun validateByCodePin() {
         val state = _uiState.value
         if (!state.canValidate) return
         val pin = state.entered

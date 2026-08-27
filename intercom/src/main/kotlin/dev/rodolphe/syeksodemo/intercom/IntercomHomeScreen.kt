@@ -1,5 +1,9 @@
 package dev.rodolphe.syeksodemo.intercom
 
+import android.Manifest
+import android.content.pm.PackageManager
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -19,7 +23,9 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import androidx.core.content.ContextCompat
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dev.rodolphe.syeksodemo.intercom.call.CallStatus
@@ -69,6 +75,12 @@ fun IntercomHomeScreen(
 @Composable
 private fun ContactPanel(onBack: () -> Unit, viewModel: CallViewModel = hiltViewModel()) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
+    val context = LocalContext.current
+    val permissions = arrayOf(Manifest.permission.CAMERA, Manifest.permission.RECORD_AUDIO)
+    val permissionLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestMultiplePermissions(),
+    ) { results -> if (results.values.all { it }) viewModel.ring() }
+
     Column(
         Modifier
             .fillMaxSize()
@@ -86,13 +98,24 @@ private fun ContactPanel(onBack: () -> Unit, viewModel: CallViewModel = hiltView
             )
         }
         Spacer(Modifier.height(24.dp))
-        Button(onClick = viewModel::ring, enabled = state.canRing, modifier = Modifier.fillMaxWidth()) {
-            Text("Sonner")
-        }
+        Button(
+            onClick = {
+                val granted = permissions.all {
+                    ContextCompat.checkSelfPermission(context, it) == PackageManager.PERMISSION_GRANTED
+                }
+                if (granted) viewModel.ring() else permissionLauncher.launch(permissions)
+            },
+            enabled = state.canRing,
+            modifier = Modifier.fillMaxWidth(),
+        ) { Text("Sonner") }
         Spacer(Modifier.height(16.dp))
         when (val s = state.status) {
             CallStatus.Ringing -> Text("Sonnerie en cours…")
-            CallStatus.Opening -> Text("Ouverture…")
+            CallStatus.InCall -> {
+                Text("En communication…", style = MaterialTheme.typography.titleMedium)
+                Spacer(Modifier.height(8.dp))
+                OutlinedButton(onClick = viewModel::hangup) { Text("Raccrocher") }
+            }
             is CallStatus.Ended -> Text(s.message)
             CallStatus.Idle -> {}
         }

@@ -44,19 +44,19 @@ fun IntercomRoute(viewModel: IntercomViewModel = hiltViewModel()) {
         ActivityResultContracts.RequestMultiplePermissions(),
     ) { results ->
         // Validate only once the user has actually granted the permissions.
-        if (results.values.all { it }) viewModel.validate()
+        if (results.values.all { it }) viewModel.validateByCodePin()
     }
 
     IntercomScreen(
         entered = uiState.entered,
         status = uiState.status,
-        onDigit = viewModel::onDigit,
+        onDigit = viewModel::onDigitClicked,
         onClear = viewModel::onClear,
         onValidate = {
             val granted = permissions.all {
                 ContextCompat.checkSelfPermission(context, it) == PackageManager.PERMISSION_GRANTED
             }
-            if (granted) viewModel.validate() else permissionLauncher.launch(permissions)
+            if (granted) viewModel.validateByCodePin() else permissionLauncher.launch(permissions)
         },
     )
 }

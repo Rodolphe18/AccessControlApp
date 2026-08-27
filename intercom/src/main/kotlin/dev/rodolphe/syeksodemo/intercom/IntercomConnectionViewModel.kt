@@ -15,7 +15,7 @@ import dev.rodolphe.syeksodemo.core.network.BuildConfig as NetworkBuildConfig
  */
 @HiltViewModel
 class IntercomConnectionViewModel @Inject constructor(
-    private val signaling: Signaling,
+    signaling: Signaling,
     config: IntercomConfig,
 ) : ViewModel() {
     init {
