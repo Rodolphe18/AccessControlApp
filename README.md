@@ -1,12 +1,22 @@
 # Syekso
 
+[![CI](https://github.com/Rodolphe18/AccessControlApp/actions/workflows/ci.yml/badge.svg)](https://github.com/Rodolphe18/AccessControlApp/actions/workflows/ci.yml)
+![Kotlin](https://img.shields.io/badge/Kotlin-2.2-7F52FF?logo=kotlin&logoColor=white)
+![Jetpack Compose](https://img.shields.io/badge/Jetpack%20Compose-Material%203-4285F4?logo=jetpackcompose&logoColor=white)
+![Hilt](https://img.shields.io/badge/Hilt-dependency%20injection-34A853)
+![Room](https://img.shields.io/badge/Room-%C2%B7%20Proto%20DataStore-FF6F00)
+![WebRTC](https://img.shields.io/badge/WebRTC-video%20call-333333?logo=webrtc&logoColor=white)
+![Bluetooth LE](https://img.shields.io/badge/Bluetooth%20LE-GATT-0082FC?logo=bluetooth&logoColor=white)
+![Android](https://img.shields.io/badge/minSdk%2026-targetSdk%2036-3DDC84?logo=android&logoColor=white)
+![Tests](https://img.shields.io/badge/tests-44%20passing-brightgreen)
+
 **A connected building-access app for Android — with real BLE hardware, a real backend, and real WebRTC video calls.**
 
 Syekso is a portfolio project modelled on a connected building-intercom product: residents open doors
 from their phone over Bluetooth Low Energy, share time-limited access codes with visitors, and answer
 a video call from the lobby intercom — unlocking the door remotely while the visitor is still on screen.
 
-Nothing here is mocked. The door is a real **ESP32** BLE peripheral. The backend is a real **Ktor +
+Nothing here is mocked. The door is a real **ESP32** BLE peripheral. The backend is a real **Spring Boot +
 MongoDB** server with JWT auth. The intercom is a **second Android app** running on a second device.
 Every feature below has been verified end-to-end on physical hardware.
 
@@ -35,7 +45,7 @@ Two Android apps, one backend, one piece of hardware:
 graph LR
     R["📱 Resident app<br/>(:app)"]
     I["📟 Intercom app<br/>(:intercom)"]
-    B["☁️ Ktor backend<br/>+ MongoDB"]
+    B["☁️ Spring Boot backend<br/>+ MongoDB"]
     E["🔌 ESP32 door<br/>(BLE peripheral)"]
 
     R -- "REST: login, doors, PIN codes, invitations" --> B
@@ -135,7 +145,7 @@ Flow** · **Retrofit + kotlinx.serialization** · **OkHttp WebSocket** · **Room
 · **Android Keystore** · **stream-webrtc-android** · **Android BLE (GATT)** · AGP 9, minSdk 26,
 targetSdk 36.
 
-**Backend:** Ktor 3 · MongoDB Atlas · JWT — [`AccessControllerServer`](https://github.com/Rodolphe18/AccessControllerServer) (separate repo).
+**Backend:** Spring Boot 4 · Java 21 · MongoDB Atlas · JWT — [`AccessControllerServer`](https://github.com/Rodolphe18/AccessControllerServer) (separate repo).
 **Hardware:** ESP32 + NimBLE-Arduino 2.x — firmware in [`hardware/esp32-door/`](hardware/esp32-door/).
 
 ---
