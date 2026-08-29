@@ -4,6 +4,18 @@
 
     <uses-permission android:name="android.permission.INTERNET" />
 
+    <!-- Android 13+: notifications are a runtime permission, and without it the doorbell is mute. -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+
+    <!-- Keeps the signaling socket alive once the resident leaves the app. SPECIAL_USE because no
+         predefined type fits: phoneCall requires registering as a full telephony app, and dataSync
+         is capped by the system for what is a persistent doorbell connection. -->
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" />
+
+    <!-- Android 14+ gates this one; it is what lets a ring take over the lock screen. -->
+    <uses-permission android:name="android.permission.USE_FULL_SCREEN_INTENT" />
+
     <application
         android:name=".SyeksoApplication"
         android:allowBackup="true"
@@ -26,6 +38,16 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <service
+            android:name=".call.CallSignalingService"
+            android:exported="false"
+            android:foregroundServiceType="specialUse">
+            <property
+                android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
+                android:value="Maintains the intercom signaling connection so the resident can be
+                    called at the door while the app is not in the foreground." />
+        </service>
     </application>
 
 </manifest>

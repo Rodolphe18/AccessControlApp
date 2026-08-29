@@ -4,15 +4,10 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dev.rodolphe.syeksodemo.core.data.repository.AuthRepository
-import dev.rodolphe.syeksodemo.core.network.BuildConfig
-import dev.rodolphe.syeksodemo.core.network.model.SignalingMessage
-import dev.rodolphe.syeksodemo.core.network.signaling.Signaling
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 /**
@@ -29,7 +24,6 @@ sealed interface MainUiState {
 @HiltViewModel
 class MainViewModel @Inject constructor(
     authRepository: AuthRepository,
-    private val signaling: Signaling,
 ) : ViewModel() {
 
     val uiState: StateFlow<MainUiState> = authRepository.session
@@ -40,21 +34,7 @@ class MainViewModel @Inject constructor(
             initialValue = MainUiState.Loading,
         )
 
-    init {
-        // Hold the signaling WebSocket whenever the resident is logged in, so a ring can reach them.
-        // http(s)://host:port/ -> ws(s)://host:port/ws
-        viewModelScope.launch {
-            authRepository.session
-                .map { it.jwt }
-                .distinctUntilChanged()
-                .collect { jwt ->
-                    if (jwt.isNotEmpty()) {
-                        val wsUrl = BuildConfig.BASE_URL.replace("http", "ws") + "ws"
-                        signaling.start(wsUrl, SignalingMessage.Hello(role = "resident", jwt = jwt))
-                    } else {
-                        signaling.stop()
-                    }
-                }
-        }
-    }
+    // The signaling socket used to be opened here. It now belongs to CallSignalingService: held by
+    // a ViewModel it died with the screen, so the intercom could only reach a resident who happened
+    // to be looking at the app. Opening it in both places would race for the same connection.
 }
